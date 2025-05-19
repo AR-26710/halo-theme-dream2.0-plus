@@ -67,6 +67,7 @@ const commonContext = {
         $('html').addClass('color-scheme-light').removeClass('color-scheme-dark').removeClass('night').removeAttr('night')
       }
       localStorage.setItem('night', isNightValue)
+      localStorage.setItem('color-scheme', isNightValue ? 'dark' : 'light')
       isNight = isNightValue
     }
     //切换按钮
@@ -374,7 +375,7 @@ const commonContext = {
     if ($elem.length === 0) return
     let loveTime = $elem.attr('data-time')
     if (!/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}$/.test(loveTime)) {
-      $elem.html(loveTime)
+      $elem.text(loveTime)
       return
     }
     const grt = new Date(loveTime)
@@ -559,39 +560,59 @@ const commonContext = {
     if (!DreamConfig.enable_security_link || !DreamConfig.security_link_url || DreamConfig.security_link_url.length === 0) {
       return
     }
-    $(document).on('click', 'a, hyperlink-inline-card, hyperlink-card', (event) => {
+    $(document).on('click', 'a[href]:not([data-url-security]), hyperlink-inline-card[href]:not([data-url-security]), hyperlink-card[href]:not([data-url-security])', (event) => {
       var href = $(event.currentTarget).attr('href')
-      if (!href) {
+      if (!href || (!href.toLowerCase().startsWith('http://') && !href.toLowerCase().startsWith('https://'))) {
         return
       }
-      var hostname = window.location.hostname
       // 判断是否为下载链接
       const isDownloadLink = (url) => {
         const downloadExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.dmg', '.exe', '.msi', '.iso', '.apk']
         return downloadExtensions.some(ext => url.toLowerCase().endsWith(ext))
       }
-      const isInternalLink = (url, siteDomain) => {
-        // 将URL和站点域名转换为小写，去除前导和尾随空格
+      const isInternalLink = (url, domainList) => {
+        // 将URL转换为小写并去除前导和尾随空格
         url = url.toLowerCase().trim()
-        siteDomain = siteDomain.toLowerCase().trim()
-        // 如果URL是协议相对路径或者绝对路径，则转换为完整的URL
+        // 处理协议相对路径或绝对路径，转换为完整URL
         if (url.startsWith('//')) {
           url = window.location.protocol + url
         } else if (url.startsWith('/')) {
           url = window.location.origin + url
         }
-        // 如果URL以'http://'或'https://'开头，则去除尾部斜杠
+        // 去除以http/https开头的URL的尾部斜杠
         if (url.startsWith('http://') || url.startsWith('https://')) {
           url = url.replace(/\/$/, '')
         }
-        // 对比URL和站点域名
-        return url.includes(siteDomain)
+        let parsedHostname
+        try {
+          parsedHostname = new URL(url).hostname
+        } catch (e) {
+          // URL解析失败，视为外部链接
+          return false
+        }
+        // 检查是否匹配任一域名
+        return domainList.some(domain => {
+          if (domain.startsWith('*.')) {
+            // 处理泛域名
+            const mainDomain = domain.slice(2) // 移除开头的*.
+            const mainParts = mainDomain.split('.')
+            const hostParts = parsedHostname.split('.')
+            // 检查host的尾部是否与主域名匹配，并且存在子域
+            return (
+              hostParts.length > mainParts.length &&
+              hostParts.slice(-mainParts.length).join('.') === mainDomain
+            )
+          } else {
+            // 处理完整域名
+            return parsedHostname === domain
+          }
+        })
       }
       if (isDownloadLink(href)) {
         event.preventDefault()
         // 如果是下载链接，直接跳转
         window.open(href, '_blank')
-      } else if (!isInternalLink(href, hostname)) {
+      } else if (!isInternalLink(href, DreamConfig.security_link_whitelist)) {
         event.preventDefault()
         window.open((DreamConfig.security_link_url + '?target=' + encodeURIComponent(href)), '_blank')
       }
@@ -649,6 +670,7 @@ const commonContext = {
     DreamConfig.effects_snowflake_mode && Utils.cachedScript(`${DreamConfig.theme_base}/js/effects/snowflake.min.js?mew=${DreamConfig.theme_version}`)
     DreamConfig.effects_universe_mode && Utils.cachedScript(`${DreamConfig.theme_base}/js/effects/universe.min.js?mew=${DreamConfig.theme_version}`)
     DreamConfig.effects_circle_magic_mode && Utils.cachedScript(`${DreamConfig.theme_base}/js/effects/circleMagic.min.js?mew=${DreamConfig.theme_version}`)
+    DreamConfig.effects_quantum_silk_thread_mode && Utils.cachedScript(`${DreamConfig.theme_base}/js/effects/quantum.min.js?mew=${DreamConfig.theme_version}`)
   },
   /* 显示主题版本信息 */
   showThemeVersion() {
@@ -657,7 +679,25 @@ const commonContext = {
     }
     window.logger(`%c页面加载耗时：${Math.round(performance.now())}ms | Theme By Dream2 Plus ${DreamConfig.theme_version}`,
       'color:#fff; background: linear-gradient(270deg, #986fee, #8695e6, #68b7dd, #18d7d3); padding: 8px 15px; border-radius: 0 15px 0 15px')
-  }
+  },
+  /* 控制是否显示Banner */
+  showBanner(pathname = location.pathname) {
+    const bannerElement = document.querySelector('.banner')
+    const sectionElement = document.querySelector('.section')
+    if (bannerElement) {
+      if (pathname !== '/') {
+        bannerElement.classList.add('hidden')
+        if (sectionElement && DreamConfig.header_fixed) {
+          sectionElement.classList.add('section-top')
+        }
+      } else {
+        bannerElement.classList.remove('hidden')
+        if (sectionElement && DreamConfig.header_fixed) {
+          sectionElement.classList.remove('section-top')
+        }
+      }
+    }
+  },
 }
 
 window.commonContext = commonContext

@@ -83,23 +83,11 @@
         gray_mode_time_list.push({time: type, desc: desc});
       }
     }
+    DreamConfig["header_fixed"] = [[${theme.config.basic_info.header_fixed}]];
     DreamConfig["gray_mode_time_list"] = gray_mode_time_list;
     DreamConfig["pjax_state"] = [[${theme.config.enhance.enable_pjax}]];
     /** 配置分享方式 */
-    let post_share = []
-    let custom_post_share = [[${theme.config.post.custom_post_share}]];
-    if(custom_post_share) {
-      for (let share of custom_post_share) {
-        let type = share.realNode.type;
-        if (post_share.indexOf(type) === -1) {
-          post_share.push(type);
-        }
-      }
-    }
-    if (post_share.length === 0) {
-      post_share.push('link');
-    }
-    DreamConfig["post_share_sites"] = post_share;
+    DreamConfig["post_share_sites"] = [[${theme.config.post.custom_post_share}]];
     /** 配置灯笼特效文本 */
     let effects_lantern_left = [[${theme.config.enhance.effects_lantern.effects_lantern_left}]];
     let effects_lantern_right = [[${theme.config.enhance.effects_lantern.effects_lantern_right}]];
@@ -120,7 +108,17 @@
     DreamConfig["enable_console_version_info"] = [[${theme.config.enhance.enable_console_version_info}]];
     /** 安全链接配置 */
     DreamConfig["enable_security_link"] = [[${theme.config.security_link_config.enable_security_link}]];
-    DreamConfig["security_link_url"] = [[${theme.config.security_link_config.security_link_url}]];
+    DreamConfig['security_link_url'] = [[${!#strings.isEmpty(theme.config.security_link_config.security_link_single_page) ? singlePageFinder.getByName(theme.config.security_link_config.security_link_single_page)?.status?.permalink : ''}]]
+    let whitelistStr = [[${theme.config.security_link_config.whitelist_domains}]]
+    let hostname = window.location.hostname
+    if (whitelistStr) {
+      DreamConfig['security_link_whitelist'] = whitelistStr.split('\n').map(domain => domain.toLowerCase().trim()).filter(domain => domain.length > 0)
+      if (DreamConfig['security_link_whitelist'].indexOf(hostname) === -1) {
+        DreamConfig['security_link_whitelist'].push(hostname)
+      }
+    } else {
+      DreamConfig['security_link_whitelist'] = [hostname]
+    }
 
     DreamConfig["theme_version"] = [[${theme.spec.version}]];
     DreamConfig["site_comment"] = [[${site.comment.enable}]];
@@ -140,6 +138,7 @@
       [(${theme.config.enhance.effects_snowflake_mode != 'none'?'DreamConfig["effects_snowflake_mode"] = "' + theme.config.enhance.effects_snowflake_mode + '";': ''})]
       [(${theme.config.enhance.effects_universe_mode != 'none'?'DreamConfig["effects_universe_mode"] = "' + theme.config.enhance.effects_universe_mode + '";': ''})]
       [(${theme.config.enhance.effects_circle_magic_mode != 'none'?'DreamConfig["effects_circle_magic_mode"] = "' + theme.config.enhance.effects_circle_magic_mode + '";': ''})]
+      [(${theme.config.enhance.effects_quantum_silk_thread_mode != 'none'?'DreamConfig["effects_quantum_silk_thread_mode"] = "' + theme.config.enhance.effects_quantum_silk_thread_mode + '";': ''})]
       [(${theme.config.post.show_img_name?'DreamConfig["show_img_name"] = true;': ''})]
       [(${theme.config.basic_style.load_progress != 'none'?'DreamConfig["load_progress"] = "' + theme.config.basic_style.load_progress + '";': ''})]
       [(${!#strings.isEmpty(theme.config.page_config.journals_share_image)?'DreamConfig["journals_share_image"] = "' + theme.config.page_config.journals_share_image + '";': ''})]
@@ -162,12 +161,14 @@
       let isNight = hasNightInLocal() ? localStorage.getItem('night') : getNightInConfig();
       if (isNight.toString() === 'true') {
         localStorage.setItem('night', 'true');
+        localStorage.setItem('color-scheme', 'dark')
         document.documentElement.classList.add('night');
         document.documentElement.setAttribute('night', 'true');
         document.documentElement.classList.add('color-scheme-dark');
       } else {
         document.documentElement.classList.add('color-scheme-light');
         document.documentElement.removeAttribute('night');
+        localStorage.setItem('color-scheme', 'light')
       }
     })();
   </script>

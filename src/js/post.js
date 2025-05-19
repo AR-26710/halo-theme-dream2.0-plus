@@ -155,11 +155,15 @@ const postContext = {
     // 代码块展开和关闭点击事件
     $body.on('click', 'figure>figcaption .ri-arrow-down-s-line', function () {
       let $this = $(this)
+      let dataCode = $this.attr('data-code')
+      if (!/^#[a-zA-Z0-9_-]+$/.test(dataCode)) {
+        return
+      }
       if ($this.is('.close')) {
-        $($this.attr('data-code')).parent().slideDown(200)
+        $(dataCode).parent().slideDown(200)
         $this.removeClass('close')
       } else {
-        $($this.attr('data-code')).parent().slideUp(200)
+        $(dataCode).parent().slideUp(200)
         $this.addClass('close')
       }
     })
@@ -197,33 +201,31 @@ const postContext = {
       localStorage.setItem(name, encrypt(JSON.stringify(commentIds)))
     }
     postContextInitial = true
+  },
+  /* 初始化Mermaid */
+  initMermaid() {
+    if (typeof mermaid === 'undefined' || mermaid === null) {
+      return
+    }
+    mermaid.initialize({ startOnLoad: true })
+    mermaid.run({
+      querySelector: 'text-diagram[data-type=mermaid]',
+    })
+  },
+  /* 初始化Katex */
+  initKatex() {
+    let $mainContent = $('.main-content')
+    if (typeof katex === 'undefined' || katex === null || $mainContent.length === 0) {
+      console.log('katex is not defined')
+      return
+    }
+    $mainContent.find('[math-inline], .math-inline, .katex--inline').each(function (index, domEle) {
+      katex.render(domEle.innerText, domEle, {displayMode: false})
+    })
+    $mainContent.find('[math-display], .math-display, .katex--display').each(function (index, domEle) {
+      katex.render(domEle.innerText, domEle, {displayMode: true})
+    })
   }
-}
-// 初始化katex
-window.initKatex = function () {
-  let $mainContent = $('.main-content')
-  if (typeof katex === 'undefined' || katex === null || $mainContent.length === 0) {
-    console.log('katex is not defined')
-    return
-  }
-  $mainContent.find('[math-inline], .math-inline, .katex--inline').each(function (index, domEle) {
-    katex.render(domEle.innerText, domEle, {displayMode: false})
-  })
-  $mainContent.find('[math-display], .math-display, .katex--display').each(function (index, domEle) {
-    katex.render(domEle.innerText, domEle, {displayMode: true})
-  })
-}
-
-// 初始化Mermaid
-window.initMermaid = function () {
-  if (typeof mermaid === 'undefined' || mermaid === null) {
-    return
-  }
-  const postBody = document.body
-  mermaid.initialize({startOnLoad: true})
-  mermaid.run({
-    querySelector: 'text-diagram[data-type=mermaid]',
-  })
 }
 
 window.postPjax = function (serialNumber) {
@@ -233,7 +235,7 @@ window.postPjax = function (serialNumber) {
   )
 }
 !(function () {
-  const advances = ['initEvent', 'initCodeBlock', 'initLiterature', 'initLike', 'foldImage']
+  const advances = ['initEvent', 'initCodeBlock', 'initLiterature', 'initLike', 'foldImage', 'initMermaid', 'initKatex']
   Object.keys(postContext).forEach(
     (c) => !window.pjaxSerialNumber && advances.includes(c) && postContext[c]()
   )

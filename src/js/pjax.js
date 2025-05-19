@@ -13,12 +13,6 @@ const initPjax = () => {
 }
 
 const computeScrollTop = (target) => {
-  // 当前为横幅大图模式，处理滚动
-  if (target.pathname !== '/' && $('.banner').length !== 0) {
-    // 避免跳转时顶部导航栏收缩
-    window.initTop = 99999999
-    return window.innerHeight / 4
-  }
   return 0
 }
 
@@ -102,6 +96,8 @@ $(document).on('pjax:beforeReplace', function (event, contents, options) {
   /* 重新初始化导航条高亮 */
   $('.navbar-nav .current,.panel-side-menu .current').removeClass('current')
   commonContext.initNavbar()
+  /* 处理banner显示 */
+  commonContext.showBanner()
   /* 移动端关闭抽屉弹窗 */
   $('html.disable-scroll').length > 0 && $('.navbar-mask').trigger('click')
 })
@@ -185,10 +181,6 @@ $(document).on('pjax:success', async function (event, data, status, xhr, options
   window.journalPjax && window.journalPjax(serialNumber)
   /* 初始化文章界面 */
   window.postPjax && window.postPjax(serialNumber)
-  /* 初始化Katex */
-  window.initKatex && window.initKatex()
-  /* 初始化Mermaid */
-  window.initMermaid && window.initMermaid()
   /* 刷新人生倒计时 */
   commonContext.initTimeCount()
   /* 初始化任务列表，禁止点击 */

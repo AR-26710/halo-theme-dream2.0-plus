@@ -9,10 +9,10 @@
     <th:block th:replace="~{common/head :: head}"/>
     <body>
     <th:block th:replace="~{common/navbar}"/>
-    <th:block th:if="${theme.config.basic_style.enable_banner}">
+    <th:block th:if="${theme.config.basic_style.enable_banner != 'false'}">
       <th:block th:replace="~{common/banner :: banner}"/>
     </th:block>
-    <section class="section">
+    <section class="section" th:classappend="${theme.config.basic_info.header_fixed && !theme.config.basic_style.banner_full_screen ? 'section-top' : ''}">
       <div th:class="${theme.config.basic_style.sidebar_column != 'all' ? 'container two-column' : 'container' }">
         <div class="columns">
           <div class="column column-main pjax">
@@ -33,6 +33,9 @@
     <th:block th:replace="~{common/footer}"/>
     <th:block th:replace="~{common/scripts}"/>
     <th:block th:utext="${theme.config.custom.inline_body_html}"></th:block>
+    <th:block th:if="${theme.config.pop_notice.show_pop_notice != null and theme.config.pop_notice.show_pop_notice != 'false'}">
+        <th:block th:replace="~{'notice/' + ${theme.config.pop_notice.show_pop_notice}}"/>
+    </th:block>
     </body>
   </th:block>
 </th:block>

@@ -3,7 +3,6 @@
       th:class="${theme.config.basic_style.theme_style}"
       th:with="urlCode = ${param.target},
                url = ${#strings.defaultString(#uris.unescapePath(urlCode), '/')},
-               targetUrl = ${#strings.startsWith(#strings.toLowerCase(url), 'http') ? url : '/'},
                title = ${singlePage.spec.title} + ' - ' + ${site.title},
                contributor = ${contributorFinder.getContributor(theme.config.basic_info.metadata_name)},
                enableComment = false, isPost = false, canonical = ${theme.config.security_link_config.security_link_url}">
@@ -125,6 +124,10 @@
 
         html.light .progress {
             background-color: #abedd8;
+        }
+
+        .font-color {
+            color: #abedd8;
         }
 
         html.dark .loading {
@@ -266,6 +269,7 @@
 
         .others-topic {
             margin-bottom: 10px;
+            line-height: 1.2rem;
             font-size: 16px;
             letter-spacing: 1px;
             color: #333;
@@ -336,6 +340,19 @@
         html.dark .countdown-text {
             color: #EFEFEF;
         }
+
+        #countdown {
+          font-weight: bold;
+        }
+
+        html.dark #countdown {
+            color: #3fc1c9;
+        }
+
+        html.light #countdown {
+            color: #26a1a6;
+        }
+
     </style>
 </head>
 <body>
@@ -350,9 +367,7 @@
         <div class="others">
             <div class="others-tip" th:utext="${#strings.defaultString(theme.config.security_link_config.security_link_tip_desc, '请注意您的账号和财产安全！')}">
             </div>
-            <div class="others-topic" th:with="oDesc = ${theme.config.security_link_config.security_link_jump_desc},
-                                           o1 = ${#strings.replace(oDesc, '{title}', site.title)},
-                                           o2 = ${#strings.replace(o1, '{url}', targetUrl)}" th:utext="${o2}">
+            <div class="others-topic">
             </div>
             <div class="progress-bar">
                 <div class="progress"></div>
@@ -361,58 +376,78 @@
                 ⚡将在 <span id="countdown">[[${theme.config.security_link_config.security_link_auto_jump_time}]]</span> 秒后跳转，请自行确认链接安全性
             </div>
             <div class="others-end">
-                <a th:href="${targetUrl}" target="_self">继续访问</a>
+                <a target="_self" href="/" aria-label="继续访问" title="继续访问">继续访问</a>
             </div>
         </div>
     </div>
     <script>
-        window.onload = function() {
-          let timer
-          let countdownElement
-          // 倒计时
-          let countdown = [[${theme.config.security_link_config.security_link_auto_jump_time}]]
-          if (countdown > 0) {
-            document.querySelector('.progress').style.width = '100%'
-            countdownElement = document.getElementById('countdown')
-            timer = setInterval(function () {
-              countdown--
-              countdownElement.textContent = countdown
-              if (countdown <= 0) {
-                clearInterval(timer)
-                window.location.replace('[[${targetUrl}]]');
-              }
-            }, 1000)
-          } else {
-            document.querySelector('.progress-bar').style.display = 'none';
-            document.querySelector('.countdown-text').style.display = 'none';
-          }
-          // 继续访问，不记录历史，避免返回此页面
-          document.querySelector('.others-end a').addEventListener('click', function (e) {
-            e.preventDefault()
-            if (timer) {
-              clearInterval(timer)
-            }
-            window.location.replace(e.target)
-            if (countdownElement) {
-              countdownElement.textContent = 0
-            }
-            document.querySelector('.progress-bar > .progress').classList.add('progress-end')
-          })
-          /* 配置主题模式 */
-          let default_theme = '[[${theme.config.basic_style.default_theme}]]';
-          const hasNightInLocal = () => localStorage.getItem('night') !== null;
-          const getNightInConfig = () => {
-            if (default_theme === 'night') {
-              return true;
-            }
-            if (default_theme === 'system') {
-              return matchMedia('(prefers-color-scheme: dark)').matches;
-            }
-            return false;
-          }
-          let isNight = hasNightInLocal() ? localStorage.getItem('night') : getNightInConfig();
-          document.documentElement.classList.add(isNight.toString() === 'true' ? 'dark' : 'light');
+      document.addEventListener('DOMContentLoaded', function() {
+        //处理跳转链接，若链接不合法则跳转到首页
+        const siteTitle = '[[${site.title}]]'
+        let link_jump_desc = '[(${theme.config.security_link_config.security_link_jump_desc})]'
+        let targetUrl = '[[${url}]]'
+        //校验链接是否合法
+        try {
+          let tUrl = new URL(targetUrl)
+        } catch (e) {
+          // URL解析失败，返回首页
+          targetUrl = '/'
         }
+        // 使用正则表达式进行全局替换
+        link_jump_desc = link_jump_desc.replace(new RegExp('{title}', 'g'), siteTitle);
+        link_jump_desc = link_jump_desc.replace(new RegExp('{url}', 'g'), targetUrl);
+        document.querySelector('.others-topic').innerHTML = link_jump_desc
+        document.querySelector('.others-end a').setAttribute('href', targetUrl);
+
+        // 倒计时
+        let timer
+        let countdownElement
+        let countdown = [[${theme.config.security_link_config.security_link_auto_jump_time}]]
+        if (countdown > 0) {
+          const progress = document.querySelector('.progress');
+          progress.style.width = '0';
+          void progress.offsetWidth;
+          progress.style.width = '100%';
+          countdownElement = document.getElementById('countdown')
+          timer = setInterval(function () {
+            countdown--
+            countdownElement.textContent = countdown
+            if (countdown <= 0) {
+              clearInterval(timer)
+              window.location.replace(targetUrl);
+            }
+          }, 1000)
+        } else {
+          document.querySelector('.progress-bar').style.display = 'none';
+          document.querySelector('.countdown-text').style.display = 'none';
+        }
+        // 继续访问，不记录历史，避免返回此页面
+        document.querySelector('.others-end a').addEventListener('click', function (e) {
+          e.preventDefault()
+          if (timer) {
+            clearInterval(timer)
+          }
+          window.location.replace(targetUrl)
+          if (countdownElement) {
+            countdownElement.textContent = 0
+          }
+          document.querySelector('.progress-bar > .progress').classList.add('progress-end')
+        })
+        /* 配置主题模式 */
+        let default_theme = '[[${theme.config.basic_style.default_theme}]]';
+        const hasNightInLocal = () => localStorage.getItem('night') !== null;
+        const getNightInConfig = () => {
+          if (default_theme === 'night') {
+            return true;
+          }
+          if (default_theme === 'system') {
+            return matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          return false;
+        }
+        let isNight = hasNightInLocal() ? localStorage.getItem('night') : getNightInConfig();
+        document.documentElement.classList.add(isNight.toString() === 'true' ? 'dark' : 'light');
+      });
     </script>
 </body>
 </html>

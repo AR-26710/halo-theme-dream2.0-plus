@@ -73,7 +73,7 @@ window.DShare = {
     element.addClass('dshare-container')
     for (let site of config.sites) {
       let clazz = 'icon-' + site
-      element.append(`<a class="dshare-icon ${clazz}" data-not-pjax${channels[site].template ? ` target="_blank" href=${makeUrl(site, config)}` : ''} title="${channels[site].name}"></a>`)
+      element.append(`<a class="dshare-icon ${clazz}" data-url-security data-not-pjax${channels[site].template ? ` target="_blank" href=${makeUrl(site, config)}` : ''} aria-label="${channels[site].name}" title="${channels[site].name}"></a>`)
     }
     config.sites.indexOf('wechat') !== -1 && createWechatShare(config, element)
     if(config.sites.indexOf('link') !== -1){
@@ -110,11 +110,34 @@ function createWechatShare(config, element) {
 function triggerPosterShare(config) {
   QRCode.toDataURL(config.url)
     .then(data => {
-      $('body').append(`<div class="dshare-poster click-animation-close pjax-close"><div class="dshare-poster-container"><div class="dshare-poster-crad">${
-        config.image ? `<div class="dshare-poster-cover"><img alt="${config.title}封面" src="${config.image}"/></div>` : ''
-      }${config.title !== '' ? `<div class="dshare-poster-content"><p class="dshare-poster-title">${config.title}</p>` : ''
-      }<p class="dshare-poster-desc">${config.description}</p><div class="dshare-poster-footer"><img class="dshare-poster-qrcode" src="${data}" alt="${config.title
-      }分享海报"/><div class="dshare-poster-qrcode-info"><p class="dshare-poster-qrcode-site">${config.origin}</p><p class="dshare-poster-qrcode-msg">手机扫描二维码查看</p></div></div></div></div><i title="点击下载封面" class="dshare-poster-download ri-download-line"></i></div></div>`)
+      const $poster = $(`
+            <div class="dshare-poster click-animation-close pjax-close">
+            <div class="dshare-poster-container">
+              <div class="dshare-poster-crad">
+                  ${config.image ? `<div class="dshare-poster-cover"><img alt="封面" src="${config.image}"/></div>` : ''}
+                  ${config.title ? '<div class="dshare-poster-content"><p class="dshare-poster-title"></p>' : ''}
+                    <p class="dshare-poster-desc"></p>
+                    <div class="dshare-poster-footer">
+                      <img class="dshare-poster-qrcode" src="${data}" alt="分享海报"/>
+                      <div class="dshare-poster-qrcode-info">
+                        <p class="dshare-poster-qrcode-site"></p>
+                        <p class="dshare-poster-qrcode-msg">手机扫描二维码查看</p>
+                      </div>
+                    </div>
+                  ${config.title ? '</div>' : ''}
+              </div>
+              <i title="点击下载封面" class="dshare-poster-download ri-download-line"></i>
+            </div>
+          </div>
+        `)
+      // 动态设置文本内容（自动转义）
+      if (config.title) {
+        $poster.find('.dshare-poster-title').text(config.title)
+      }
+      $poster.find('.dshare-poster-desc').text(config.description)
+      $poster.find('.dshare-poster-qrcode-site').text(config.origin)
+      $('body').append($poster)
+
       let $posterCrad = $('.dshare-poster-crad')
       $posterCrad.click(e => e.stopPropagation())
       $('.dshare-poster-download').click(e => {
