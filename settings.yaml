@@ -73,6 +73,28 @@ spec:
           name: cdn_by_url
           label: 'CDN提供商 URL'
           placeholder: '请输入链接地址'
+        - $formkit: select
+          name: referrer_policy
+          label: 全局 Referrer 策略
+          value: 'strict-origin-when-cross-origin'
+          help: 全局 Referrer 策略，会被http头和元素策略覆盖，用于后备方案。
+          options:
+            - label: 完全不发送Referer头
+              value: 'no-referrer'
+            - label: 浏览器默认值，HTTPS→HTTP时不发送，其他情况发送完整URL
+              value: 'no-referrer-when-downgrade'
+            - label: 只发送源(协议+域名+端口)
+              value: 'origin'
+            - label: 同源时发送完整URL，跨域时只发送源
+              value: 'origin-when-cross-origin'
+            - label: 同源时发送完整URL，跨域时不发送
+              value: 'same-origin'
+            - label: 只发送源，HTTPS→HTTP时不发送
+              value: 'strict-origin'
+            - label: 同源时发送完整URL，跨域时只发送源，HTTPS→HTTP时不发送
+              value: 'strict-origin-when-cross-origin'
+            - label: 总是发送完整URL(即使HTTPS→HTTP)
+              value: 'unsafe-url'
         - $formkit: radio
           name: header_fixed
           label: 固定标题栏
@@ -444,6 +466,16 @@ spec:
               label: 小图模式（交替）
             - value: grid
               label: 网格模式（强优先）
+        - $formkit: radio
+          name: show_edit_content
+          label: 显示文章/页面编辑按键
+          value: true
+          help: '当登录用户为超级管理员时，是否显示文章/页面编辑按键，未登录用户始终不显示此按键。'
+          options:
+            - value: true
+              label: 显示
+            - value: false
+              label: 不显示
         - $formkit: number
           name: code_fold_line
           label: 代码块折叠
@@ -885,11 +917,16 @@ spec:
               label: 显示
             - value: false
               label: 不显示
-        - $formkit: number
-          name: categories_num
-          label: 侧边栏分类-展示分类数量
-          placeholder: 请输入数量数值
-          value: 10
+        - $formkit: list
+          name: categories_names
+          label: 侧边栏分类-展示的分类
+          addLabel: 添加分类
+          help: '默认树形展示全部分类，配置后仅显示选定分类（单层显示）。'
+          itemType: string
+          children:
+            - $formkit: categorySelect
+              index: "$index"
+              validation: required
         - $formkit: radio
           name: tags_more
           label: 侧边栏标签-显示”更多”按钮
@@ -1447,6 +1484,16 @@ spec:
             - value: false
               label: 关闭
         - $formkit: radio
+          name: disable_debug
+          label: 禁止打开控制台
+          value: false
+          help: '开启后，禁止通过快捷键打开控制台，其他方式打开时禁止调试操作。'
+          options:
+            - value: true
+              label: 开启
+            - value: false
+              label: 关闭
+        - $formkit: radio
           name: enable_debug
           label: 开启 DEBUG 日志
           value: false
@@ -1594,7 +1641,7 @@ spec:
           id: show_pop_notice
           label: 显示弹窗通知
           value: 'false'
-          help: '控制是否显示弹窗通知，切换风格会重新触发显示通知内容。'
+          help: '控制是否显示弹窗通知，切换风格会重新触发显示通知内容。使用“自定义通知”请参考文档中“主题设置 - 弹窗通知 - 自定义通知”部分书写html内容。'
           options:
             - value: 'side'
               label: 侧边通知
@@ -1602,12 +1649,8 @@ spec:
               label: 凝滞通知
             - value: 'false'
               label: 不显示
-        - $formkit: text
-          name: pop_notice_title
-          if: $get(show_pop_notice).value !== 'false'
-          label: 通知标题
-          help: '显示侧知的标题信息，留空时隐藏。'
-          value: '通知'
+            - value: 'custom'
+              label: 自定义通知
         - $formkit: code
           name: pop_notice_content
           if: $get(show_pop_notice).value !== 'false'
@@ -1617,12 +1660,6 @@ spec:
           value: '通知'
           label: 通知的内容，支持html
           help: '显示通知的内容，支持html，若内容发生变更则重新显示。注：支持设置属性 onclick="closePopupNotice();" 关闭通知。'
-        - $formkit: text
-          name: pop_notice_btn
-          if: $get(show_pop_notice).value !== 'false'
-          label: 通知按键内容
-          help: '显示通知的按键内容，留空时隐藏，隐藏后必须在通知内容中设置属性 onclick="closePopupNotice();" 关闭通知。'
-          value: '我知道了'
         - $formkit: radio
           if: $get(show_pop_notice).value !== 'false'
           name: pop_notice_show_mode
@@ -1636,11 +1673,27 @@ spec:
               label: 会话级关闭
             - value: 'forever'
               label: 永久关闭
+        - $formkit: text
+          name: pop_notice_title
+          if: $get(show_pop_notice).value !== 'false' && $get(show_pop_notice).value !== 'custom'
+          label: 通知标题
+          help: '显示侧知的标题信息，留空时隐藏。'
+          value: '通知'
+        - $formkit: text
+          name: pop_notice_btn
+          if: $get(show_pop_notice).value !== 'false' && $get(show_pop_notice).value !== 'custom'
+          label: 通知按键内容
+          help: '显示通知的按键内容，留空时隐藏，隐藏后必须在通知内容中设置属性 onclick="closePopupNotice();" 关闭通知或者设置“通知显示时间”来自动关闭通知。'
+          value: '我知道了'
+        - $formkit: number
+          name: pop_notice_show_time
+          if: $get(show_pop_notice).value !== 'false' && $get(show_pop_notice).value !== 'custom'
+          label: 通知显示时间
+          help: '控制通知显示时间，单位：秒。小于等于 0 不启用。'
         - $formkit: radio
           name: pop_notice_orientation
           if: $get(show_pop_notice).value === 'side'
           label: 侧边通知弹出方向-水平方向
-          help: '控制侧边通知的弹出方向-水平方向。'
           value: 'right'
           options:
             - value: 'right'
@@ -1651,7 +1704,6 @@ spec:
           if: $get(show_pop_notice).value === 'side'
           name: pop_notice_vertical
           label: 侧边通知弹出方向-垂直方向
-          help: '控制侧边通知的弹出方向-垂直方向。'
           value: 'top'
           options:
             - value: 'top'

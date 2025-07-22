@@ -2,6 +2,49 @@ window.encrypt = (str) => window.btoa(unescape(encodeURIComponent(str)))
 window.decrypt = (str) => decodeURIComponent(escape(window.atob(str)))
 
 const commonContext = {
+  /* 初始化widget */
+  initWidget() {
+    const BREAKPOINT = 1216
+    const $rightCol = $('.column-right')
+    const $shadowCol = $('.column-right-shadow')
+    // 检查元素是否存在
+    if (!$rightCol.length || !$shadowCol.length) return
+    const $window = $(window)
+    // 监听窗口大小变化（使用防抖优化性能）
+    $(window).on('resize', debounce(checkWidgetPosition, 50))
+
+    function checkWidgetPosition() {
+      const windowWidth = $window.width()
+      const isMoved = $shadowCol.children().length > 0
+
+      // 移动到左侧的条件
+      if (windowWidth < BREAKPOINT && !isMoved) {
+        $rightCol.children().detach().appendTo($shadowCol)
+        $shadowCol.addClass('is-active')
+      }
+      // 移回右侧的条件
+      else if (windowWidth >= BREAKPOINT && isMoved) {
+        $shadowCol.children().detach().appendTo($rightCol)
+        $shadowCol.removeClass('is-active')
+      }
+    }
+
+    // 防抖函数
+    function debounce(func, wait) {
+      let timeout
+      return function () {
+        const context = this
+        const args = arguments
+        clearTimeout(timeout)
+        timeout = setTimeout(function () {
+          func.apply(context, args)
+        }, wait)
+      }
+    }
+
+    // 初始检查窗口大小
+    checkWidgetPosition()
+  },
   /* 初始化目录和公告模块 */
   initTocAndNotice() {
     const {pathname} = location
@@ -49,36 +92,66 @@ const commonContext = {
   initGallery() {
     // 用链接和标题包装图像
     $('.main-content img:not(.not-gallery)').each(function () {
+      const $img = $(this)
+      const src = $img.attr('src')
+      const alt = $img.attr('alt')
+      const srcset = $img.attr('srcset')
+
       if ($(this).parents('[data-fancybox],mew-photos').length === 0) {
-        $(this).wrap(`<div class="gallery-item"><div data-fancybox="gallery" data-options='{"hash": false}' ${this.alt ? `data-caption="${this.alt}"` : ''} href="${$(this).attr('src')
+        // 移除 src 并用 data-src 替代（避免立即加载）
+        $img.removeAttr('src')
+        $img.removeAttr('srcset')
+        $img.attr('data-src', src)
+        $img.attr('data-srcset', srcset)
+        $img.addClass('lazyload')
+
+        $(this).wrap(`<div class="gallery-item"><div data-fancybox="gallery" data-options='{"hash": false}' ${this.alt ? `data-caption="${this.alt}"` : ''} href="${src
         }"></div>${(this.alt && DreamConfig.show_img_name) ? `<p>${this.alt}</p>` : ''}</div>`)
       }
     })
   },
   /* 初始化主题模式（仅用户模式） */
   initMode() {
-    let isNight = localStorage.getItem('night') || false
+    //检查是否将暗黑模式保存到 localStorage
+    const hasNightInLocal = () => {
+      const value = localStorage.getItem('night')
+      return value === 'true' || value === 'false'
+    }
+    //根据配置读取默认模式
+    const getNightInConfig = () => {
+      if (DreamConfig.default_theme === 'night') {
+        return true
+      }
+      if (DreamConfig.default_theme === 'system') {
+        return matchMedia('(prefers-color-scheme: dark)').matches
+      }
+      return false
+    }
+    //是否是暗黑模式
+    let isNight = hasNightInLocal()
+      ? localStorage.getItem('night') === 'true' // 检查 localStorage
+      : getNightInConfig() // 否则走配置逻辑
+
     const applyNight = (isNightValue) => {
       if (isNightValue) {
-        // 配色方案
         $('html').addClass('color-scheme-dark').removeClass('color-scheme-light').addClass('night').attr('night', true)
       } else {
-        // 配色方案
         $('html').addClass('color-scheme-light').removeClass('color-scheme-dark').removeClass('night').removeAttr('night')
       }
-      localStorage.setItem('night', isNightValue)
+      //doc文档的配色方案
       localStorage.setItem('color-scheme', isNightValue ? 'dark' : 'light')
+      localStorage.setItem('special-efficacy-scheme', isNightValue ? 'dark' : 'light')
       isNight = isNightValue
     }
     //切换按钮
-    $('#toggle-mode').on('click', () => applyNight(isNight.toString() !== 'true'))
-    //加载后首选的配色
-    if (DreamConfig.default_theme === 'system') {
-      window.matchMedia('(prefers-color-scheme: dark)')
-        .addListener((event) => applyNight(event.matches))
-    } else {
-      applyNight(isNight.toString() === 'true')
-    }
+    $('#toggle-mode').on('click', () => {
+      //应用配色方案，并切换isNight的状态
+      applyNight(!isNight)
+      //只有点击了切换才需要保存到localStorage
+      localStorage.setItem('night', isNight)
+    })
+    //应用初始配色方案
+    applyNight(isNight)
   },
   /* 导航条高亮 */
   initNavbar() {
@@ -309,7 +382,6 @@ const commonContext = {
   /* 离屏提示 */
   offscreenTip() {
     if (Utils.isMobile() || (!DreamConfig.document_hidden_title && !DreamConfig.document_visible_title)) return
-    // const originTitle = document.title
     let originTitle = document.title
     let timer = null
     document.addEventListener('visibilitychange', function () {
@@ -317,7 +389,7 @@ const commonContext = {
         if (!DreamConfig.document_visible_title || document.title !== DreamConfig.document_visible_title) {
           originTitle = document.title
         }
-        DreamConfig.document_hidden_title && (document.title = DreamConfig.document_hidden_title)
+        document.title = DreamConfig.document_hidden_title || originTitle
         clearTimeout(timer)
       } else {
         document.title = DreamConfig.document_visible_title || originTitle
@@ -698,13 +770,74 @@ const commonContext = {
       }
     }
   },
+  /* 自动播放Banner视频 */
+  playBannerVideo() {
+    var videoElement = document.querySelector('.banner video')
+    if (!videoElement) {
+      return
+    }
+
+    // 设置循环播放相关属性
+    videoElement.loop = true // 关键属性：启用循环
+    videoElement.muted = true // 静音更易自动播放
+    videoElement.setAttribute('playsinline', '') // iOS内联播放
+    videoElement.setAttribute('webkit-playsinline', '') // 旧版iOS支持
+
+    function playVideo() {
+      try {
+        if (videoElement.paused) {
+          var playPromise = videoElement.play()
+          // 处理可能返回的Promise
+          if (playPromise !== undefined) {
+            playPromise.catch(function (error) {
+              console.log('视频播放失败:', error)
+            })
+          }
+        }
+      } catch (e) {
+        console.log('播放错误:', e)
+      }
+    }
+
+    // 确保循环播放正常工作
+    videoElement.addEventListener('ended', function () {
+      videoElement.currentTime = 0 // 重置播放位置
+      playVideo() // 重新播放
+    }, false)
+
+    // 兼容IE11的事件监听
+    function addOneTimeEventListener(element, event, callback) {
+      var handler = function () {
+        callback()
+        // IE11不支持removeEventListener的useCapture参数
+        if (element.removeEventListener) {
+          element.removeEventListener(event, handler)
+        } else if (element.detachEvent) { // 兼容IE8及更早版本
+          element.detachEvent('on' + event, handler)
+        }
+      }
+
+      if (element.addEventListener) {
+        element.addEventListener(event, handler)
+      } else if (element.attachEvent) { // 兼容IE8及更早版本
+        element.attachEvent('on' + event, handler)
+      }
+    }
+
+    // 添加点击/触摸事件监听
+    addOneTimeEventListener(document, 'click', playVideo)
+    // 为移动设备添加触摸事件支持
+    addOneTimeEventListener(document, 'touchend', playVideo)
+    // 尝试自动播放
+    playVideo()
+  },
 }
 
 window.commonContext = commonContext
 let timeLifeHour = -1
 
 !(function () {
-  const loads = ['initCarousel', 'sparkInput', 'websiteTime']
+  const loads = ['initCarousel', 'sparkInput', 'websiteTime', 'playBannerVideo']
   const omits = ['initEffects', 'showThemeVersion', 'iniTaskItemDisabled']
 
   Object.keys(commonContext).forEach(

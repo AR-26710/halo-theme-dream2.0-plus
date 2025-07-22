@@ -1,7 +1,7 @@
 <h1 align="center">halo-theme-dream2.0-plus</h1>
 
 <p align="center">
-<a href="https://github.com/halo-dev/halo"><img alt="Halo version" src="https://img.shields.io/badge/halo-2.20.19%2B-brightgreen?style=flat-square" /></a>
+<a href="https://github.com/halo-dev/halo"><img alt="Halo version" src="https://img.shields.io/badge/halo-2.21.0%2B-brightgreen?style=flat-square" /></a>
 <a href="https://github.com/zsjy/halo-theme-dream2.0-plus/releases"><img alt="releases" src="https://img.shields.io/github/release/zsjy/halo-theme-dream2.0-plus.svg?style=flat-square"/></a>
 <a href="https://github.com/zsjy/halo-theme-dream2.0-plus/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/github/license/zsjy/halo-theme-dream2.0-plus?style=flat-square"/></a>
 <a href="https://github.com/zsjy/halo-theme-dream2.0-plus/releases"><img alt="downloads" src="https://img.shields.io/github/downloads/zsjy/halo-theme-dream2.0-plus/total.svg?style=flat-square"/></a>
@@ -17,6 +17,7 @@
 - [侧边栏组件](https://www.hcjike.com/docs/halo-theme-dream2.0/theme/sidebar-assembly)
 - [使用iconfont替换主题部分功能图标](https://www.hcjike.com/archives/TsR84KYw)
 - [邮件模板配置](https://www.hcjike.com/docs/halo-theme-dream2.0/theme/email)
+- [自定义通知配置](https://www.hcjike.com/docs/halo-theme-dream2.0/theme/setting/notice#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%9A%E7%9F%A5)
 
 ## 插件相关
 ### KaTeX
@@ -31,7 +32,6 @@
   - **不开启**`显示复制按钮`，主题端已提供复制按钮，不需要额外开启。
 
 ### 智阅GPT-智能AI摘要
-- 不支持`pjax`
 - 关闭`开启主题适配`
 - 文章选择器：`.article`
 - 样式选择器：`night`
@@ -55,7 +55,7 @@
 
 | 主题版本    | 适配Halo版本 | 测试用Halo版本 |
 | ----------- |----------| -------------- |
-| x.x      | 2.20.19+ | 2+     |
+| x.x      | 2.21.0+  | 2+     |
 
 
 
