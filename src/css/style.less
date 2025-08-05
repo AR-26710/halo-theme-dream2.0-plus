@@ -2198,6 +2198,55 @@ button.swiper-pagination-bullet {
   }
 }
 
+//折叠块
+
+details {
+  padding: 0.5em;
+  border: 1px solid var(--light-b);
+  border-radius: var(--radius-wrap);
+  margin-bottom: 14px;
+
+  summary {
+    cursor: var(--cursor-pointer);
+    font-weight: bold;
+    padding: 0.5rem;
+    margin: -0.5rem;
+    outline: none;
+    list-style: none;
+    background-color: var(--bg-h);
+  }
+
+  & > div {
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px dashed var(--light-b);
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  details {
+    margin-left: 1.5rem;
+    background-color: var(--bg-k);
+  }
+
+  /* 箭头图标样式 */
+  summary::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--theme);
+    transition: transform 0.2s;
+  }
+
+}
+
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
 .banner {
   width: 100%;
   height: 54vh;
@@ -2516,18 +2565,20 @@ button.swiper-pagination-bullet {
       overflow: hidden;
 
       &-image {
-        min-height: 280px;
+        height: 280px;
         width: 100%;
         margin: auto;
         display: block;
         background-position: 50% 50%;
         background-size: cover;
         transition: all 0.5s;
+        object-fit: cover;
+        object-position: center;
       }
     }
 
     .cover-image {
-      min-height: 360px;
+      height: 360px;
       width: 100%;
       margin: auto;
       position: relative;
@@ -2535,6 +2586,8 @@ button.swiper-pagination-bullet {
       background-position: 50% 50%;
       background-size: cover;
       transition: all 0.5s;
+      object-position:center;
+      object-fit:cover;
     }
 
     &.card-cover, .cover-image {
@@ -2631,6 +2684,7 @@ button.swiper-pagination-bullet {
       & > a {
         width: 34%;
         overflow: hidden;
+        position: relative;
 
         &:first-child {
           clip-path: polygon(0 0, 90% 0, 100% 100%, 0 100%)
@@ -2648,6 +2702,9 @@ button.swiper-pagination-bullet {
         background-position: 50% 50%;
         background-size: cover;
         transition: all 0.5s;
+        position:absolute;
+        object-position:center;
+        object-fit:cover;
       }
 
       .card-content {
@@ -2737,6 +2794,14 @@ button.swiper-pagination-bullet {
         font-size: 1.15em;
       }
     }
+
+    &.summary-not-thumbnail:not(:empty) {
+      margin-bottom: 14px;
+    }
+
+    &.summary-thumbnail:not(:empty) {
+      margin-bottom: -.6rem;
+    }
   }
 
   .columns {
@@ -2755,7 +2820,7 @@ button.swiper-pagination-bullet {
         order: 2;
 
         &-grid {
-          margin: 1rem 0 1.4rem 0;
+          margin: 1.4rem 0 1.4rem 0;
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(min(100%, max(260px, 100% / 4)), 1fr));
           gap: 1rem;
@@ -4241,11 +4306,11 @@ button.swiper-pagination-bullet {
 @media (max-width: (@laptop-min-width - 1)) {
   .section .card {
     .cover-image {
-      min-height: 24vw;
+      height: 24vw;
     }
 
     .thumbnail-image {
-      min-height: 20vw;
+      height: 20vw;
     }
   }
 
@@ -4478,11 +4543,11 @@ button.swiper-pagination-bullet {
 @media (min-width: @laptop-min-width) {
   .section .card {
     .cover-image {
-      min-height: 250px;
+      height: 250px;
     }
 
     .thumbnail-image {
-      min-height: 195px;
+      height: 195px;
     }
   }
 
@@ -4507,11 +4572,11 @@ button.swiper-pagination-bullet {
 @media (min-width: @desktop-min-width) {
   .section .card {
     .cover-image {
-      min-height: 240px;
+      height: 240px;
     }
 
     .thumbnail-image {
-      min-height: 185px;
+      height: 185px;
     }
   }
 
@@ -4567,11 +4632,11 @@ button.swiper-pagination-bullet {
     }
 
     .cover-image {
-      min-height: 260px;
+      height: 260px;
     }
 
     .thumbnail-image {
-      min-height: 210px;
+      height: 210px;
     }
   }
 
@@ -4612,11 +4677,11 @@ button.swiper-pagination-bullet {
 @media (min-width: @display-min-width) {
   .section .card {
     .cover-image {
-      min-height: 320px;
+      height: 320px;
     }
 
     .thumbnail-image {
-      min-height: 240px;
+      height: 240px;
     }
   }
 
@@ -4662,11 +4727,11 @@ button.swiper-pagination-bullet {
 
   .section .card {
     .cover-image {
-      min-height: 340px;
+      height: 340px;
     }
 
     .thumbnail-image {
-      min-height: 260px;
+      height: 260px;
     }
   }
 
@@ -5469,6 +5534,10 @@ text-diagram[data-type="mermaid"] {
   b, mark {
     color: var(--light-z);
     background: var(--theme);
+  }
+
+  h2 {
+    cursor: var(--cursor-pointer);
   }
 }
 

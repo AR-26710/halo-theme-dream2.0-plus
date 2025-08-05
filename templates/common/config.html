@@ -104,6 +104,8 @@
     DreamConfig["effects_lantern_left"] = effects_lantern_left;
     DreamConfig["effects_lantern_right"] = effects_lantern_right;
 
+    /** 懒加载模式 */
+    DreamConfig["lazy_enable"] = [[${theme.config.basic_info.lazy_enable}]];
     /** 控制台主题信息 */
     DreamConfig["enable_console_version_info"] = [[${theme.config.enhance.enable_console_version_info}]];
     /** 安全链接配置 */
@@ -122,7 +124,6 @@
     /** 配置主题模式 */
     DreamConfig["default_theme"] = [[${theme.config.basic_style.default_theme}]];
     DreamConfig["theme_version"] = [[${theme.spec.version}]];
-    DreamConfig["site_comment"] = [[${site.comment.enable}]];
     DreamConfig["theme_base"] = "[(${#theme.assets('/')})]";
     [(${!#strings.isEmpty(theme.config.post.code_fold_line)?'DreamConfig["code_fold_line"] = "' + theme.config.post.code_fold_line + '";': ''})]
       [(${!#strings.isEmpty(theme.config.basic_info.document_hidden_title)?'DreamConfig["document_hidden_title"] = "' + #strings.escapeJavaScript(theme.config.basic_info.document_hidden_title) + '";': ''})]

@@ -33,8 +33,13 @@
 
 ### 智阅GPT-智能AI摘要
 - 关闭`开启主题适配`
-- 文章选择器：`.article`
+- 文章选择器：1.7.3及以上版本建议使用`.summary`，反之使用 `.article`
+- 文章路由：`/archives/*`
 - 样式选择器：`night`
+- 模型人设：
+``` text
+你是专业摘要助手，要求输入文章后，直接输出中文摘要，严格控制在150字之内，仅返回纯文本不包含任何格式或说明。摘要需准确概括核心内容，剔除冗余信息，保持语言简洁连贯，避免主观评价。若原文信息量不足则适当补充背景说明，但不得超出字数限制。输出时首尾不加引号、不换行、不带编号或标题。
+```
 
 ## 主题功能配置
 ### 开启ServiceWorker配置
@@ -94,3 +99,7 @@
 感谢您对本项目的喜爱，您的打赏是对本项目最好的支持！
 
 [爱发电](https://afdian.com/a/org-hcjike)
+
+## Star 历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zsjy/halo-theme-dream2.0-plus&type=Date)](https://www.star-history.com/#zsjy/halo-theme-dream2.0-plus&Date)

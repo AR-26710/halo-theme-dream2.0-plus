@@ -105,8 +105,7 @@ const postContext = {
    */
   initShare() {
     if (!window.DShare) return
-    let imageUrl = $('.cover-image').css('background-image')
-    imageUrl && (imageUrl = imageUrl.substring(5, imageUrl.length - 2))
+    let imageUrl = $('img.cover-image').attr('src')
     DShare.create('.dshare', {image: imageUrl, imageSelector: '.main-content'})
   },
   /* 代码块复制 */
@@ -211,20 +210,6 @@ const postContext = {
     mermaid.run({
       querySelector: 'text-diagram[data-type=mermaid]',
     })
-  },
-  /* 初始化Katex */
-  initKatex() {
-    let $mainContent = $('.main-content')
-    if (typeof katex === 'undefined' || katex === null || $mainContent.length === 0) {
-      console.log('katex is not defined')
-      return
-    }
-    $mainContent.find('[math-inline], .math-inline, .katex--inline').each(function (index, domEle) {
-      katex.render(domEle.innerText, domEle, {displayMode: false})
-    })
-    $mainContent.find('[math-display], .math-display, .katex--display').each(function (index, domEle) {
-      katex.render(domEle.innerText, domEle, {displayMode: true})
-    })
   }
 }
 
@@ -235,7 +220,7 @@ window.postPjax = function (serialNumber) {
   )
 }
 !(function () {
-  const advances = ['initEvent', 'initCodeBlock', 'initLiterature', 'initLike', 'foldImage', 'initMermaid', 'initKatex']
+  const advances = ['initEvent', 'initCodeBlock', 'initLiterature', 'initLike', 'foldImage', 'initMermaid']
   Object.keys(postContext).forEach(
     (c) => !window.pjaxSerialNumber && advances.includes(c) && postContext[c]()
   )
